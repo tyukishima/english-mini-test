@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="英語5問">
+<link rel="manifest" href="manifest.webmanifest">
+<title>英語5問ミニテスト</title>
+<style>
+:root{--blue:#2563eb;--bg:#f4f7fb;--text:#1f2937;--muted:#6b7280;--line:#e5e7eb;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Kaku Gothic ProN",Meiryo,sans-serif}
+main{max-width:720px;margin:auto;padding:18px 14px 48px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{font-size:25px;margin:0}.tag{font-size:12px;background:#e8f0ff;color:#1d4ed8;border-radius:999px;padding:6px 9px;font-weight:700}
+.card{background:var(--card);border-radius:18px;padding:20px;margin:12px 0;box-shadow:0 5px 24px #0000000c}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{text-align:center;background:#f7f8fa;border-radius:13px;padding:11px}.num{font-size:23px;font-weight:800}.small{font-size:12px;color:var(--muted)}
+.bar{height:7px;background:#e8ebf0;border-radius:9px;margin:12px 0 4px;overflow:hidden}.fill{height:100%;width:0;background:var(--blue);transition:.25s}
+.qtitle{font-size:21px;font-weight:750;line-height:1.5;margin:12px 0}.qno{color:var(--blue);font-weight:750}
+.template{background:#f4f6f9;border-radius:12px;padding:11px 13px;margin:10px 0 15px;color:#4b5563}
+textarea{width:100%;min-height:105px;border:1px solid #d1d5db;border-radius:12px;padding:13px;font-size:17px;line-height:1.5;resize:vertical;outline:none}textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2563eb18}
+button{border:0;border-radius:12px;padding:13px 16px;font-size:16px;font-weight:750;cursor:pointer;background:#111827;color:white}
+.primary{background:var(--blue)}.light{background:#eef2f7;color:#374151}.danger{background:#fff0f0;color:#b42318}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px}.buttons button{flex:1;min-width:140px}
+.good{background:#edf9f0;border:1px solid #b9e3c3}.bad{background:#fff3ef;border:1px solid #f1c5ba}.note{background:#fff8df;border:1px solid #eedb8c}
+.panel{padding:14px;border-radius:13px;margin-top:10px}.answer{font-weight:700;font-size:17px;margin-top:4px}
+.hidden{display:none}.weakrow{padding:12px 0;border-bottom:1px solid var(--line)}.weakrow:last-child{border-bottom:0}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:750;margin-right:5px}
+footer{text-align:center;color:#9ca3af;font-size:11px;margin-top:22px}
+@media(max-width:480px){main{padding:14px 10px 40px}.card{padding:17px}.qtitle{font-size:19px}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>英語5問ミニテスト</h1><span class="tag">18問・反復学習</span></div>
+
+<div class="card">
+  <div class="stats">
+    <div class="stat"><div class="num" id="tests">0</div><div class="small">実施回数</div></div>
+    <div class="stat"><div class="num" id="rate">0%</div><div class="small">正答率</div></div>
+    <div class="stat"><div class="num" id="weak">0</div><div class="small">要復習</div></div>
+  </div>
+  <div class="bar"><div class="fill" id="fill"></div></div>
+  <div class="small" id="status">今日の5問を始めましょう。</div>
+</div>
+
+<div id="quiz"></div>
+<div id="result" class="card hidden"></div>
+
+<div class="card">
+  <div class="buttons">
+    <button class="primary" onclick="start()">▶ 5問スタート</button>
+    <button class="light" onclick="showWeak()">弱点を見る</button>
+  </div>
+</div>
+<div id="weakPanel" class="card hidden"></div>
+
+<footer>学習記録はこの端末のブラウザに保存されます。</footer>
+</main>
+
+<script>
+let Q=[{"id": 1, "q": "What season do you like?", "answer": "I like summer.", "acceptable": "I like + 季節", "hint": "summer / spring / fall / winter など。"}, {"id": 2, "q": "Can you __________?", "answer": "Yes, I can. / No, I can't.", "acceptable": "Yes, I can. / No, I can't.", "hint": "Can you ～? への答え方を確認。"}, {"id": 3, "q": "What did you do after school yesterday?", "answer": "I played soccer.", "acceptable": "I + 過去形", "hint": "yesterday なので、基本は過去形。"}, {"id": 4, "q": "What do you like doing in your free time?", "answer": "Well, I like reading.", "acceptable": "I like + 動詞-ing", "hint": "like の後ろは -ing が基本。"}, {"id": 5, "q": "Where do you live?", "answer": "I live in Kamakura.", "acceptable": "I live in + 場所", "hint": "住んでいる場所を答える。"}, {"id": 6, "q": "Which do you like better, coffee or tea?", "answer": "I like tea better.", "acceptable": "I like + A + better.", "hint": "coffee / tea のどちらかを選ぶ。"}, {"id": 7, "q": "How do you come to school?", "answer": "I come to school by train.", "acceptable": "I come to school by + 交通手段", "hint": "by train / by bus / on foot など。"}, {"id": 8, "q": "Have you ever visited __________?", "answer": "Yes, I have. / No, I haven't.", "acceptable": "Yes, I have. / No, I haven't.", "hint": "Have you ever ～? への答え方。"}, {"id": 9, "q": "What are you going to do on Sunday?", "answer": "I'm going to play tennis.", "acceptable": "I'm going to + 動詞の原形", "hint": "be going to + 動詞の原形。"}, {"id": 10, "q": "Do you have any pets?", "answer": "Yes, I have a cat. / No, I don't.", "acceptable": "Yes, I have ... / No, I don't.", "hint": "ペットの種類や数を答える。"}, {"id": 11, "q": "What sport do you like the best?", "answer": "I like soccer the best.", "acceptable": "I like + スポーツ + the best.", "hint": "一番好きなスポーツを答える。"}, {"id": 12, "q": "Tell me about your dream.", "answer": "My dream is to become a doctor.", "acceptable": "My dream is to + 動詞の原形", "hint": "将来の夢を答える。"}, {"id": 13, "q": "What's your favorite food?", "answer": "I like sushi.", "acceptable": "I like + 食べ物", "hint": "好きな食べ物を答える。"}, {"id": 14, "q": "Which is more difficult, English or math?", "answer": "I think math is more difficult than English.", "acceptable": "I think A is more difficult than B.", "hint": "more difficult than の比較表現。"}, {"id": 15, "q": "Are you in a club?", "answer": "Yes, I'm in the tennis club. / No, I'm not.", "acceptable": "Yes, I'm in the ... club. / No, I'm not.", "hint": "部活に入っているか答える。"}, {"id": 16, "q": "What do you want to do this year?", "answer": "I want to learn English.", "acceptable": "I want to + 動詞の原形", "hint": "want to + 動詞の原形。"}, {"id": 17, "q": "What Japanese food do you recommend?", "answer": "I think sushi is delicious.", "acceptable": "I think + 食べ物 + is delicious.", "hint": "おすすめの日本食を答える。"}, {"id": 18, "q": "What shaved ice flavor do you like?", "answer": "I like strawberry.", "acceptable": "I like + 味", "hint": "strawberry / lemon / melon など。"}], current=[], idx=0, data=JSON.parse(localStorage.getItem('eng5data')||'{"tests":0,"answered":0,"correct":0,"items":{}}');
+
+async function init(){
+  Q=await fetch('questions.json').then(r=>r.json());
+  updateStats(); start();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+function save(){localStorage.setItem('eng5data',JSON.stringify(data));updateStats();}
+function updateStats(){
+  document.getElementById('tests').textContent=data.tests;
+  document.getElementById('rate').textContent=data.answered?Math.round(data.correct/data.answered*100)+'%':'0%';
+  document.getElementById('weak').textContent=Object.values(data.items).filter(x=>(x.wrong||0)>0 && (x.streak||0)<3).length;
+}
+function pick(){
+  let pool=[];
+  Q.forEach(q=>{
+    let s=data.items[q.id]||{};
+    let w=1+(s.wrong||0)*4-Math.min(s.streak||0,4)*.7;
+    if((s.wrong||0)>0 && (s.streak||0)<3) w+=3;
+    w=Math.max(.5,Math.min(w,15));
+    for(let i=0;i<Math.round(w);i++) pool.push(q);
+  });
+  let out=[];
+  while(out.length<5){
+    let q=pool[Math.floor(Math.random()*pool.length)];
+    if(!out.some(x=>x.id===q.id)) out.push(q);
+  }
+  return out;
+}
+function start(){
+  current=pick();idx=0;
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('weakPanel').classList.add('hidden');
+  render();
+}
+function render(){
+  let q=current[idx];
+  document.getElementById('fill').style.width=(idx/5*100)+'%';
+  document.getElementById('status').textContent='5問中 '+(idx+1)+'問目';
+  document.getElementById('quiz').innerHTML=`
+  <div class="card">
+    <div class="qno">問題 ${idx+1} / 5　・　Q${q.id}</div>
+    <div class="qtitle">${q.q}</div>
+    <div class="template">${q.acceptable}</div>
+    <div class="small">あなたの答え</div>
+    <textarea id="ans" autocomplete="off" autocapitalize="sentences" placeholder="英語で答えてください"></textarea>
+    <div class="buttons"><button class="primary" onclick="reveal()">答え合わせ</button></div>
+  </div>`;
+  document.getElementById('ans').focus();
+}
+function reveal(){
+  let q=current[idx], a=document.getElementById('ans').value.trim();
+  if(!a){alert('答えを入力してください。');return;}
+  document.getElementById('fill').style.width=((idx+1)/5*100)+'%';
+  document.getElementById('quiz').innerHTML=`
+  <div class="card">
+    <div class="qno">問題 ${idx+1} / 5　・　Q${q.id}</div>
+    <div class="qtitle">${q.q}</div>
+    <div class="panel note"><div class="small">あなたの答え</div><div>${escapeHtml(a)}</div></div>
+    <div class="panel good"><div class="small">例・基本の答え</div><div class="answer">${q.answer}</div><div class="small" style="margin-top:7px">${q.hint}</div></div>
+    <div class="small" style="margin-top:14px">自分の答えと比べて判定してください。</div>
+    <div class="buttons">
+      <button class="danger" onclick="judge(false)">✕ 間違い・要復習</button>
+      <button class="primary" onclick="judge(true)">○ 正解</button>
+    </div>
+  </div>`;
+}
+function judge(ok){
+  let q=current[idx],s=data.items[q.id]||{correct:0,wrong:0,streak:0};
+  if(ok){s.correct++;s.streak++;data.correct++}else{s.wrong++;s.streak=0}
+  data.items[q.id]=s;data.answered++;save();
+  if(idx<4){idx++;render()}else finish();
+}
+function finish(){
+  data.tests++;save();
+  let rate=current.reduce((n,q)=>n+((data.items[q.id]||{}).streak>0?1:0),0);
+  document.getElementById('quiz').innerHTML='';
+  let r=document.getElementById('result');r.classList.remove('hidden');
+  r.innerHTML=`<h2>今回の5問が終了しました</h2><p>間違えた問題は、次回から優先的に出題されます。</p><div class="buttons"><button class="primary" onclick="start()">もう一度5問</button><button class="light" onclick="showWeak()">弱点を確認</button></div>`;
+  document.getElementById('status').textContent='お疲れさまでした。';
+}
+function showWeak(){
+  let rows=Q.map(q=>({q,s:data.items[q.id]||{}})).filter(x=>(x.s.wrong||0)>0)
+    .sort((a,b)=>(b.s.wrong||0)-(a.s.wrong||0));
+  let el=document.getElementById('weakPanel');el.classList.remove('hidden');
+  el.innerHTML='<h2>弱点・復習リスト</h2>'+
+    (rows.length?rows.map(x=>`<div class="weakrow"><span class="pill">Q${x.q.id}</span><b>${x.q.q}</b><br><span class="small">正解 ${x.s.correct||0}回 / 間違い ${x.s.wrong||0}回 / 連続正解 ${x.s.streak||0}回</span></div>`).join(''):'<p>まだ間違えた問題はありません。🎉</p>')+
+    '<div class="buttons"><button class="light" onclick="document.getElementById(\\'weakPanel\\').classList.add(\\'hidden\\')">閉じる</button></div>';
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+init();
+</script>
+</body>
+</html>
